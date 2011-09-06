@@ -1,0 +1,141 @@
+<html>
+  <head>
+  </head>
+  <body>
+    <canvas id="pad" width="500" height="300" style="border: 2px #CCC solid;">
+    </canvas>
+    <script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        //Compatibility
+        //Map mozilla web socket namespace to the standard namespace
+        if(typeof MozWebSocket === "function"){
+          window.WebSocket = MozWebSocket;
+        }
+        //Prevent escape key from closing the websocket connection in firefox
+        var win = $(window);
+        win.keydown(function(e){
+          if(e.keyCode == 27){
+            e.preventDefault();
+          }
+        })
+        $.ajax({
+          url: "/socket.io/socket.io.js",
+          dataType: "script",
+          success: loaded
+        });
+        function loaded(){
+
+          var canvas = document.getElementById('pad');
+          var context = canvas.getContext("2d");
+          var pad = $('#pad');
+          var win = $(window);
+          var down = false;
+          var over =  false;
+          var lastX = 0;
+          var lastY = 0;
+          function offsetX(e){
+            x = e.pageX-pad.offset().left;
+            return x;
+          }
+          function offsetY(e){
+            y = e.pageY-pad.offset().top;
+            return y;
+          }
+          function lineStart(e){
+            lastX = offsetX(e);
+            lastY = offsetY(e);
+          }
+          function lineTo(e){
+              x = offsetX(e);
+              y = offsetY(e);
+              sendLine(lastX, lastY, x, y);
+              lastX = x;
+              lastY = y;
+          }
+          function sendLine(x1,y1,x2,y2){
+            socket.emit('send', {
+                'action': 'line',
+                'x1': x1,
+                'y1': y1,
+                'x2': x2,
+                'y2': y2
+              });
+          }
+          function drawLine(data){
+            context.beginPath();
+            context.moveTo(data.x1, data.y1);
+            context.lineTo(data.x2, data.y2);
+            context.stroke();
+          }
+          function sendRect(x1,y1,x2,y2,color){
+            socket.emit('send', {
+                'action': 'rect',
+                'x1': x1,
+                'y1': y1,
+                'x2': x2,
+                'y2': y2,
+                'color': color
+              });
+          }
+          function drawRect(data){
+            context.fillStyle = data.color;
+            context.fillRect (data.x1, data.y1, data.x2, data.y2);
+          }
+          function sendClear(){
+            socket.emit('send', {
+                'action': 'clear'
+              });
+          }
+          function drawClear(data){
+            context.clearRect (0,0,500,300);
+          }
+          win.mouseup(function(e){
+            if(e.button == 0){
+              down = false;
+            }
+          });
+          win.keydown(function(e){
+            if(e.keyCode == 27){
+              sendClear();
+            }
+          })
+          pad.mousedown(function(e){
+            if(e.button != 2){
+              down = true;
+              over =  true;
+            }else{
+              down = false;
+            }
+            lineStart(e);
+          });
+          pad.mouseout(function(e){
+            if(down){
+              lineTo(e);
+            }
+            over =  false;
+          });
+          pad.mouseover(function(e){
+            if(down){
+              lineTo(e);
+            }
+            over =  true;
+          });
+          win.mousemove(function(e){
+            if(down && over){
+              lineTo(e);
+            }else{
+              lineStart(e);
+            }
+          });
+          var socket = io.connect('http://10.80.0.186');
+          socket.on('draw', function (data) {
+            if(data.action == "line"){drawLine(data);}
+            if(data.action == "rect"){drawRect(data);}
+            if(data.action == "clear"){drawClear(data);}
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

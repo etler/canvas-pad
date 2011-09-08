@@ -128,7 +128,8 @@
               lineStart(e);
             }
           });
-          var socket = io.connect('http://10.80.0.186');
+          var ip = null;
+          var socket = io.connect(ip);
           socket.on('draw', function (data) {
             if(data.action == "line"){drawLine(data);}
             if(data.action == "rect"){drawRect(data);}

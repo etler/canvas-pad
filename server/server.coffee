@@ -1,5 +1,5 @@
 httpServer = (req, res) ->
-  fs.readFile __dirname + '/../../client/index.html',
+  fs.readFile __dirname + '/client/index.html',
     (err, data) ->
       if err
         res.writeHead 500

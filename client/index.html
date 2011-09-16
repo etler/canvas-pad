@@ -1,5 +1,8 @@
 <html>
   <head>
+    <title>
+      CanvasPad
+    </title>
   </head>
   <body>
     <canvas id="pad" width="500" height="300" style="border: 2px #CCC solid;">
@@ -90,22 +93,10 @@
           function drawClear(data){
             context.clearRect (0,0,500,300);
           }
-          win.mouseup(function(e){
-            if(e.button == 0){
-              down = false;
-            }
-          });
-          win.keydown(function(e){
-            if(e.keyCode == 27){
-              sendClear();
-            }
-          })
           pad.mousedown(function(e){
             if(e.button != 2){
               down = true;
               over =  true;
-            }else{
-              down = false;
             }
             lineStart(e);
           });
@@ -121,11 +112,24 @@
             }
             over =  true;
           });
+          win.mouseup(function(e){
+            if(e.button == 0){
+              down = false;
+            }
+          });
+          win.bind("contextmenu",function(e){
+            return false;
+          });
           win.mousemove(function(e){
             if(down && over){
               lineTo(e);
             }else{
               lineStart(e);
+            }
+          });
+          win.keydown(function(e){
+            if(e.keyCode == 27){
+              sendClear();
             }
           });
           var ip = null;

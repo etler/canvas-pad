@@ -32,3 +32,8 @@ io.sockets.on 'connection',
         actions = [] if data.action is "clear"
         for client in clients
           client.emit 'draw', data
+    socket.on 'disconnect',
+      # Remove client reference
+      () ->
+        index = clients.indexOf socket
+        clients[index..index] = []

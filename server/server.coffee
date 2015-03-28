@@ -14,7 +14,6 @@ fs   = (require 'fs')
 ip = null
 http.listen 80, ip
 
-io.set 'log level', 1
 clients = []
 actions = []
 

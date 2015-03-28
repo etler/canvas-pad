@@ -1,152 +1,86 @@
 <html>
   <head>
     <title>
-      CanvasPad
+      Canvas Test
     </title>
   </head>
   <body>
-    <canvas id="pad" width="500" height="300" style="border: 2px #CCC solid;">
+    <!-- Drawing area -->
+    <canvas id="canvas" width="500" height="300" style="border: 2px grey solid;">
     </canvas>
-    <script src="https://code.jquery.com/jquery-1.6.2.min.js"></script>
+    <!-- Script dependencies, jQuery and socket.io -->
+    <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.3.4.js"></script>
+    <!-- Your client code -->
     <script>
-      $(document).ready(function() {
-        //Compatibility
-        //Map mozilla web socket namespace to the standard namespace
-        if(typeof MozWebSocket === "function"){
-          window.WebSocket = MozWebSocket;
-        }
-        //Prevent escape key from closing the websocket connection in firefox
-        var win = $(window);
-        win.keydown(function(e){
-          if(e.keyCode == 27){
-            e.preventDefault();
-          }
-        })
-        $.ajax({
-          url: "/socket.io/socket.io.js",
-          dataType: "script",
-          success: loaded
-        });
-        function loaded(){
+      $(function () {
+        "use strict";
 
-          var canvas = document.getElementById('pad');
-          var context = canvas.getContext("2d");
-          var pad = $('#pad');
-          var win = $(window);
-          var down = false;
-          var over =  false;
-          var lastX = 0;
-          var lastY = 0;
-          function offsetX(e){
-            x = e.pageX-pad.offset().left;
-            return x;
-          }
-          function offsetY(e){
-            y = e.pageY-pad.offset().top;
-            return y;
-          }
-          function lineStart(e){
-            lastX = offsetX(e);
-            lastY = offsetY(e);
-          }
-          function lineTo(e){
-              x = offsetX(e);
-              y = offsetY(e);
-              sendLine(lastX, lastY, x, y);
-              lastX = x;
-              lastY = y;
-          }
-          function sendLine(x1,y1,x2,y2){
-            var data = {
-              'action': 'line',
-              'x1': x1,
-              'y1': y1,
-              'x2': x2,
-              'y2': y2
-            }
-            socket.emit('send', data);
-            draw(data);
-          }
-          function drawLine(data){
-            context.beginPath();
-            context.moveTo(data.x1, data.y1);
-            context.lineTo(data.x2, data.y2);
-            context.stroke();
-          }
-          function sendRect(x1,y1,x2,y2,color){
-            var data = {
-              'action': 'rect',
-              'x1': x1,
-              'y1': y1,
-              'x2': x2,
-              'y2': y2,
-              'color': color
-            };
-            socket.emit('send', data);
-            draw(data);
-          }
-          function drawRect(data){
-            context.fillStyle = data.color;
-            context.fillRect (data.x1, data.y1, data.x2, data.y2);
-          }
-          function sendClear(){
-            var data = {
-              'action': 'clear'
-            };
-            socket.emit('send', data);
-            draw(data);
-          }
-          function drawClear(data){
-            context.clearRect (0,0,500,300);
-          }
-          function draw (data) {
-            if(data.action == "line"){drawLine(data);}
-            if(data.action == "rect"){drawRect(data);}
-            if(data.action == "clear"){drawClear(data);}
-          };
-          pad.mousedown(function(e){
-            if(e.button != 2){
-              down = true;
-              over =  true;
-            }
-            lineStart(e);
-          });
-          pad.mouseout(function(e){
-            if(down){
-              lineTo(e);
-            }
-            over =  false;
-          });
-          pad.mouseover(function(e){
-            if(down){
-              lineTo(e);
-            }
-            over =  true;
-          });
-          win.mouseup(function(e){
-            if(e.button == 0){
-              down = false;
-            }
-          });
-          win.bind("contextmenu",function(e){
-            return false;
-          });
-          win.mousemove(function(e){
-            if(down && over){
-              lineTo(e);
-            }else{
-              lineStart(e);
-            }
-          });
-          win.keydown(function(e){
-            if(e.keyCode == 27){
-              sendClear();
-            }
-          });
-          var ip = null;
-          var socket = io.connect(ip);
-          socket.on('draw', draw);
+        // Environment initialization
+        var canvas, context, socket, start, end;
+        canvas = document.getElementById('canvas');
+        context = canvas.getContext('2d');
+        socket = io();
+
+        // Canvas functions
+        function drawLine(data) {
+          context.beginPath();
+          context.moveTo(data.start[0], data.start[1]);
+          context.lineTo(data.end[0], data.end[1]);
+          context.stroke();
         }
+
+        function drawClear() {
+          context.fillStyle = "white";
+          context.fillRect(0, 0, 500, 300);
+        }
+
+        // Event handlers
+        function handleLine(event) {
+          var data;
+          if (start) {
+            end = [event.offsetX, event.offsetY];
+            data = { start: start, end: end };
+            socket.emit('line', data);
+            drawLine(data);
+            start = end;
+          }
+        }
+
+        function handleClear(event) {
+          if (event.which === 27) {
+            socket.emit('clear');
+            drawClear();
+          }
+        }
+
+        // Canvas event
+        $('#canvas')
+          .mousedown(function (event) {
+            start = [event.offsetX, event.offsetY];
+          })
+          .mousemove(function (event) {
+            handleLine(event);
+          })
+          .mouseup(function (event) {
+            handleLine(event);
+            start = end = null;
+          });
+
+        // Key events
+        $(document)
+          .keydown(function (event) {
+            handleClear(event);
+          });
+
+        // Socket events
+        socket
+          .on('line', function (data) {
+            drawLine(data);
+          })
+          .on('clear', function () {
+            drawClear();
+          });
       });
     </script>
   </body>

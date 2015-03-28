@@ -1,10 +1,10 @@
-# Process command line arguments
-port = parseInt(process.argv[2]) or 8080
+# Process environment variables
+port = process.env.PORT or 8080
 
 # Dependencies
+fs = require('fs')
 http = require('http')
-socketio   = require('socket.io')
-fs   = require('fs')
+socketio = require('socket.io')
 
 # Initialize server state
 clients = []

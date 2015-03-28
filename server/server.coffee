@@ -12,7 +12,8 @@ io   = (require 'socket.io').listen http
 fs   = (require 'fs')
 
 ip = null
-http.listen 80, ip
+port = parseInt(process.argv[2]) or 8080
+http.listen port, ip
 
 clients = []
 actions = []
@@ -36,3 +37,5 @@ io.sockets.on 'connection',
       () ->
         index = clients.indexOf socket
         clients[index..index] = []
+
+console.log "Listening on port #{port}"

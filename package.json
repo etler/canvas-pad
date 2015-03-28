@@ -3,6 +3,9 @@
   "description" : "Simultaneous canvas drawing across browsers with websockets",
   "author" : "Tim Etler <tmetler@gmail.com> (http://www.timetler.com)",
   "private": true,
+  "engines": {
+    "node": "0.12.x"
+  },
   "repository" :
     { "type" : "git"
     , "url" : "git@github.com:etler/Sub.git" },

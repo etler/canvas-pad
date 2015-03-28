@@ -1,0 +1,17 @@
+{
+  "name" : "canvaspad",
+  "description" : "Simultaneous canvas drawing across browsers with websockets",
+  "author" : "Tim Etler <tmetler@gmail.com> (http://www.timetler.com)",
+  "private": true,
+  "repository" :
+    { "type" : "git"
+    , "url" : "git@github.com:etler/Sub.git" },
+  "dependencies" :
+    { "socket.io": "0.8.x" },
+  "devDependencies" :
+    { "coffee-script" : "1.9.x" },
+  "scripts": {
+    "start": "node server.js",
+    "install": "./node_modules/.bin/cake build"
+  }
+}

@@ -57,13 +57,15 @@
               lastY = y;
           }
           function sendLine(x1,y1,x2,y2){
-            socket.emit('send', {
-                'action': 'line',
-                'x1': x1,
-                'y1': y1,
-                'x2': x2,
-                'y2': y2
-              });
+            var data = {
+              'action': 'line',
+              'x1': x1,
+              'y1': y1,
+              'x2': x2,
+              'y2': y2
+            }
+            socket.emit('send', data);
+            draw(data);
           }
           function drawLine(data){
             context.beginPath();
@@ -72,27 +74,36 @@
             context.stroke();
           }
           function sendRect(x1,y1,x2,y2,color){
-            socket.emit('send', {
-                'action': 'rect',
-                'x1': x1,
-                'y1': y1,
-                'x2': x2,
-                'y2': y2,
-                'color': color
-              });
+            var data = {
+              'action': 'rect',
+              'x1': x1,
+              'y1': y1,
+              'x2': x2,
+              'y2': y2,
+              'color': color
+            };
+            socket.emit('send', data);
+            draw(data);
           }
           function drawRect(data){
             context.fillStyle = data.color;
             context.fillRect (data.x1, data.y1, data.x2, data.y2);
           }
           function sendClear(){
-            socket.emit('send', {
-                'action': 'clear'
-              });
+            var data = {
+              'action': 'clear'
+            };
+            socket.emit('send', data);
+            draw(data);
           }
           function drawClear(data){
             context.clearRect (0,0,500,300);
           }
+          function draw (data) {
+            if(data.action == "line"){drawLine(data);}
+            if(data.action == "rect"){drawRect(data);}
+            if(data.action == "clear"){drawClear(data);}
+          };
           pad.mousedown(function(e){
             if(e.button != 2){
               down = true;
@@ -134,11 +145,7 @@
           });
           var ip = null;
           var socket = io.connect(ip);
-          socket.on('draw', function (data) {
-            if(data.action == "line"){drawLine(data);}
-            if(data.action == "rect"){drawRect(data);}
-            if(data.action == "clear"){drawClear(data);}
-          });
+          socket.on('draw', draw);
         }
       });
     </script>

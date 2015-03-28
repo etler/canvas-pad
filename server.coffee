@@ -7,7 +7,6 @@ http = require('http')
 socketio = require('socket.io')
 
 # Initialize server state
-clients = []
 actions = []
 
 # Initialize http server
@@ -26,8 +25,6 @@ console.log "Listening on port #{port}"
 socketServer = socketio.listen httpServer
 socketServer.sockets.on 'connection', (socket) ->
   console.log "Client connected"
-  # Initialize new client connection
-  clients.push socket
   # Pass new client draw history
   socket.emit 'draw', action for action in actions
 
@@ -37,11 +34,7 @@ socketServer.sockets.on 'connection', (socket) ->
     # Clear draw history
     actions = [] if data.action is "clear"
     # Pass draw command to peers
-    for client in clients
-      client.emit 'draw', data
+    socket.broadcast.emit 'draw', data
 
   socket.on 'disconnect', ->
     console.log "Client disconnected"
-    # Remove client reference
-    index = clients.indexOf socket
-    clients[index..index] = []

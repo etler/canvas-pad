@@ -12,7 +12,7 @@ actions = []
 
 # Initialize http server
 httpServer = http.createServer (req, res) ->
-  fs.readFile "#{__dirname}/client/index.html",
+  fs.readFile "./public/index.html",
     (err, data) ->
       if err
         res.writeHead 500
